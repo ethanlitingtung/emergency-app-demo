@@ -45,6 +45,7 @@ export default function ProfilePage() {
       updatedAt: new Date().toISOString(),
     });
     setSaving(false);
+    localStorage.setItem("profileCompleted", "true");
     router.push("/services");
   };
 

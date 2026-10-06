@@ -12,6 +12,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { formatIncidentType } from "@/lib/incident";
 
 const names: Record<string, string> = {
   police: "Police",
@@ -86,7 +87,7 @@ export default function IncidentPage() {
         <p className="text-5xl">✅</p>
         <h1 className="mt-2 text-2xl font-bold">Alert sent</h1>
         <p className="text-gray-600">
-          {names[incident.service] ?? incident.service} · {incident.type}
+          {names[incident.service] ?? incident.service} · {formatIncidentType(incident.type)}
         </p>
       </div>
 

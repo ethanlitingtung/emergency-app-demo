@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { formatIncidentType } from "@/lib/incident";
 
 const statusColors: Record<string, string> = {
   new: "bg-red-100 text-red-800",
@@ -18,6 +19,7 @@ export default function DispatcherDashboard() {
   const [role, setRole] = useState("");
   const [incidents, setIncidents] = useState<any[]>([]);
   const [checking, setChecking] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u: User | null) => {
@@ -45,6 +47,19 @@ export default function DispatcherDashboard() {
   const logout = async () => {
     await signOut(auth);
     router.push("/dispatcher/login");
+  };
+
+  const removeHandledIncident = async (id: string) => {
+    if (!window.confirm("Delete this handled emergency from the queue?")) return;
+    setDeletingId(id);
+    try {
+      await deleteDoc(doc(db, "incidents", id));
+    } catch (e) {
+      console.error(e);
+      window.alert("Couldn't delete this emergency. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (checking) {
@@ -79,13 +94,13 @@ export default function DispatcherDashboard() {
       ) : (
         <ul className="space-y-3">
           {incidents.map((inc) => (
-            <li key={inc.id}>
+            <li key={inc.id} className="rounded-xl border border-gray-200 bg-white shadow-sm">
               <button
                 onClick={() => router.push(`/dispatcher/incidents/${inc.id}`)}
-                className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm"
+                className="w-full p-4 text-left"
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-lg font-semibold">{inc.type}</p>
+                  <p className="text-lg font-semibold">{formatIncidentType(inc.type)}</p>
                   <span
                     className={`rounded-full px-2 py-1 text-xs font-bold ${
                       statusColors[inc.status] ?? "bg-gray-100"
@@ -101,6 +116,18 @@ export default function DispatcherDashboard() {
                     : ""}
                 </p>
               </button>
+              {inc.status === "resolved" && (
+                <div className="border-t border-gray-100 px-4 py-2 text-right">
+                  <button
+                    type="button"
+                    onClick={() => removeHandledIncident(inc.id)}
+                    disabled={deletingId === inc.id}
+                    className="text-sm font-medium text-red-700 underline disabled:opacity-50"
+                  >
+                    {deletingId === inc.id ? "Deleting…" : "Delete handled emergency"}
+                  </button>
+                </div>
+              )}
             </li>
           ))}
         </ul>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -52,6 +53,12 @@ export default function DispatcherLoginPage() {
         ))}
       </div>
       {error && <p className="mt-4 text-center text-red-600">{error}</p>}
+      <p className="mt-6 text-center text-sm text-gray-500">
+        Looking for the user experience?{" "}
+        <Link href="/" className="font-medium text-blue-700 underline">
+          Switch to a user
+        </Link>
+      </p>
     </main>
   );
 }

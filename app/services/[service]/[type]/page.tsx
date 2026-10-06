@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { formatIncidentType } from "@/lib/incident";
 
 const names: Record<string, string> = {
   police: "Police",
@@ -26,7 +27,7 @@ export default function ConfirmPage() {
   const params = useParams();
   const router = useRouter();
   const service = params.service as string;
-  const type = params.type as string;
+  const type = formatIncidentType(params.type as string);
 
   const [progress, setProgress] = useState(0);
   const [countdown, setCountdown] = useState<number | null>(null);

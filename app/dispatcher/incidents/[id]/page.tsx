@@ -14,6 +14,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { formatIncidentType } from "@/lib/incident";
 
 const statusLabels: Record<string, string> = {
   new: "New",
@@ -47,6 +48,11 @@ export default function DispatcherIncidentPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [draft, setDraft] = useState("");
   const [checking, setChecking] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editType, setEditType] = useState("");
+  const [editStatus, setEditStatus] = useState("new");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u: User | null) => {
@@ -78,6 +84,33 @@ export default function DispatcherIncidentPage() {
     const next = nextStatus[incident.status];
     if (!next) return;
     await updateDoc(doc(db, "incidents", id), { status: next });
+  };
+
+  const beginEditing = () => {
+    setEditType(formatIncidentType(incident.type ?? ""));
+    setEditStatus(incident.status ?? "new");
+    setEditError("");
+    setEditing(true);
+  };
+
+  const saveIncident = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const type = editType.trim();
+    if (!type) {
+      setEditError("Enter an emergency type.");
+      return;
+    }
+    setSavingEdit(true);
+    setEditError("");
+    try {
+      await updateDoc(doc(db, "incidents", id), { type, status: editStatus });
+      setEditing(false);
+    } catch (e) {
+      console.error(e);
+      setEditError("Couldn't save the emergency. Please try again.");
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -116,11 +149,62 @@ export default function DispatcherIncidentPage() {
         DEMO MODE — simulated dispatcher console
       </p>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{incident.type}</h1>
+        <h1 className="text-2xl font-bold">{formatIncidentType(incident.type)}</h1>
         <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold">
           {statusLabels[incident.status] ?? incident.status}
         </span>
       </div>
+
+      {!editing ? (
+        <button
+          type="button"
+          onClick={beginEditing}
+          className="mb-4 text-sm font-medium text-blue-700 underline"
+        >
+          Edit emergency
+        </button>
+      ) : (
+        <form onSubmit={saveIncident} className="mb-6 space-y-3 rounded-xl border border-gray-200 p-4">
+          <h2 className="font-semibold">Edit emergency</h2>
+          <label className="block text-sm font-medium">
+            Emergency type
+            <input
+              value={editType}
+              onChange={(e) => setEditType(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm font-medium">
+            Status
+            <select
+              value={editStatus}
+              onChange={(e) => setEditStatus(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+            >
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+          {editError && <p className="text-sm text-red-600">{editError}</p>}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={savingEdit}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {savingEdit ? "Saving…" : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       {next && (
         <button

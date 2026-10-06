@@ -30,6 +30,14 @@ export default function ServicesPage() {
           </button>
         ))}
       </div>
+        <p className="mt-8 text-center text-sm">
+          <button
+            onClick={() => router.push("/dispatcher/login")}
+            className="text-gray-500 underline"
+          >
+            Dispatcher? Sign in here
+          </button>
+        </p>
     </main>
   );
 }

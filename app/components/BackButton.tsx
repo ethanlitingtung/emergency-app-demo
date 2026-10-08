@@ -1,9 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function BackButton() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  if (pathname === "/services") return null;
 
   return (
     <nav className="mx-auto w-full max-w-4xl px-6 pt-4">

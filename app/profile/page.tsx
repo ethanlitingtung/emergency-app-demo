@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const inputStyle =
@@ -20,6 +20,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function ProfilePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
@@ -31,6 +32,17 @@ export default function ProfilePage() {
     emergencyContactName: "",
     emergencyContactPhone: "",
   });
+
+  useEffect(() => {
+    getDoc(doc(db, "profiles", "demo-user"))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          setForm((current) => ({ ...current, ...snapshot.data() }));
+        }
+      })
+      .catch((error) => console.error("Couldn't load profile", error))
+      .finally(() => setLoading(false));
+  }, []);
 
   const update =
     (field: keyof typeof form) =>
@@ -85,7 +97,7 @@ export default function ProfilePage() {
         </Field>
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || loading}
           className="w-full rounded-lg bg-red-600 py-3 text-lg font-semibold text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save profile"}

@@ -18,6 +18,13 @@ export default function ServicesPage() {
         DEMO MODE — no real emergency services are contacted
       </p>
       <h1 className="mb-6 text-2xl font-bold">Which service do you need?</h1>
+      <button
+        type="button"
+        onClick={() => router.push("/profile")}
+        className="mb-5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+      >
+        Edit profile
+      </button>
       <div className="grid grid-cols-2 gap-4">
         {services.map((s) => (
           <button

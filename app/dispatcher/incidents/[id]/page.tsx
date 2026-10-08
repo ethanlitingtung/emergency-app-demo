@@ -139,12 +139,6 @@ export default function DispatcherIncidentPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-6">
-      <button
-        onClick={() => router.push("/dispatcher")}
-        className="mb-4 text-sm text-blue-600"
-      >
-        ← Back to queue
-      </button>
       <p className="mb-2 inline-block rounded bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">
         DEMO MODE — simulated dispatcher console
       </p>
